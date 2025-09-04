@@ -1,25 +1,26 @@
 # Docker CI/CD with GitHub Actions
 
-This project uses GitHub Actions to automatically build and push Docker images to GitHub Container Registry (ghcr.io).
+This project uses GitHub Actions to automatically build and push multi-architecture Docker images to GitHub Container Registry (ghcr.io).
 
 ## Workflows
 
-### 1. Build and Push (`docker-build.yml`)
+### 1. **Multi-Architecture Build (`multi-arch-build.yml`)**
+- **Triggers**: Push to main/master branch, pull requests, and manual dispatch
+- **Actions**: Pure multi-architecture Docker builds without testing
+- **Features**: 
+  - AMD64 and ARM64 support with QEMU emulation
+  - Manual workflow dispatch with custom platform selection
+  - Build arguments for version and date tracking
+  - Fast builds without test overhead
+
+### 2. **Test and Multi-Arch Build (`test-and-build.yml`)**
 - **Triggers**: Push to main/master branch, pull requests, and version tags
-- **Actions**: Builds multi-architecture Docker image and pushes to ghcr.io
+- **Actions**: Runs tests then builds and pushes multi-architecture Docker image
 - **Features**: 
   - Multi-architecture support (AMD64, ARM64)
-  - Automatic tagging based on branch, PR, and semantic versions
-  - GitHub Actions cache for faster builds
+  - Node.js testing on multiple versions
+  - Docker image testing after build
   - Only pushes on actual pushes (not PRs)
-
-### 2. Security Scan (`docker-security.yml`)
-- **Triggers**: Push to main/master branch, pull requests, and weekly schedule
-- **Actions**: 
-  - Trivy vulnerability scanning
-  - npm audit checks
-  - Snyk security scanning (optional)
-- **Features**: Results uploaded to GitHub Security tab
 
 ### 3. **Multi-Architecture Build (`multi-arch-build.yml`)**
 - **Triggers**: Push to main/master branch, pull requests, and manual dispatch
@@ -30,7 +31,7 @@ This project uses GitHub Actions to automatically build and push Docker images t
   - Manual workflow dispatch with custom platform selection
   - Build arguments for version and date tracking
 
-### 4. Release (`release.yml`)
+### 4. **Release (`release.yml`)**
 - **Triggers**: GitHub releases published
 - **Actions**: Multi-platform Docker builds and releases
 - **Features**: 
@@ -44,10 +45,7 @@ Ensure your repository has the following enabled:
 - **Settings → Actions → General**: Allow all actions and reusable workflows
 - **Settings → Actions → General**: Read and write permissions for packages
 
-### 2. Secrets (Optional)
-- `SNYK_TOKEN`: For Snyk security scanning (optional)
-
-### 3. Package Visibility
+### 2. Package Visibility
 - **Settings → Packages**: Ensure packages are visible as desired (public/private)
 
 ## Usage
@@ -59,7 +57,7 @@ Images are automatically built and pushed on:
 - Every version tag (e.g., v1.0.0)
 
 ### Manual Triggers
-You can manually trigger workflows from the Actions tab in GitHub.
+You can manually trigger the multi-arch workflow from the Actions tab in GitHub with custom platform selection.
 
 ### Image Tags
 Images are tagged with:
@@ -115,13 +113,6 @@ All workflows now support multi-architecture builds:
 - **Manual Dispatch**: Custom platform selection via workflow dispatch
 - **Build Arguments**: Version and timestamp tracking in images
 
-## Security Features
-
-- **Vulnerability Scanning**: Trivy scans for known CVEs
-- **Dependency Checks**: npm audit for Node.js vulnerabilities
-- **Container Security**: Regular security scans on schedule
-- **Results Integration**: Security findings appear in GitHub Security tab
-
 ## Troubleshooting
 
 ### Build Failures
@@ -142,9 +133,9 @@ All workflows now support multi-architecture builds:
 ## Customization
 
 ### Adding New Platforms
-Edit the `release.yml` workflow and modify the `platforms` field:
+Edit the workflow files and modify the `platforms` field:
 ```yaml
-platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+platforms: linux/amd64,linux/arm64,linux/ppc64le
 ```
 
 ### Changing Build Context
@@ -161,7 +152,7 @@ build-args: |
 ## Best Practices
 
 1. **Tag Strategy**: Use semantic versioning for releases
-2. **Security**: Regularly update base images and dependencies
-3. **Caching**: Leverage GitHub Actions cache for faster builds
+2. **Multi-Arch**: Leverage QEMU for cross-platform builds
+3. **Caching**: Use GitHub Actions cache for faster builds
 4. **Testing**: Run tests before building images
 5. **Documentation**: Keep this guide updated with any changes

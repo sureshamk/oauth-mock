@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-This directory contains GitHub Actions workflows for automated Docker image building, testing, and deployment.
+This directory contains GitHub Actions workflows for automated multi-architecture Docker image building and deployment.
 
 ## Quick Start
 
@@ -12,25 +12,17 @@ This directory contains GitHub Actions workflows for automated Docker image buil
 
 ### `test-and-build.yml` (Recommended)
 - Runs tests on multiple Node.js versions
-- Builds and pushes Docker image only if tests pass
-- Includes basic Docker image testing
+- Builds and pushes multi-architecture Docker image only if tests pass
+- Includes Docker image testing
 - **Use this for most development workflows**
 
 ### `multi-arch-build.yml` (Multi-Architecture)
-- Comprehensive multi-architecture builds (AMD64, ARM64)
-- Platform-specific testing with QEMU emulation
+- Pure multi-architecture builds (AMD64, ARM64)
+- QEMU emulation for cross-platform builds
 - Manual workflow dispatch with custom platform selection
-- **Use this for production multi-arch deployments**
+- **Use this for fast multi-arch deployments without testing**
 
-### `docker-build.yml`
-- Simple build and push workflow
-- Good for basic CI/CD needs
-- No testing included
 
-### `docker-security.yml`
-- Security scanning and vulnerability checks
-- Weekly scheduled scans
-- Results appear in GitHub Security tab
 
 ### `release.yml`
 - Multi-platform builds for releases
@@ -55,7 +47,7 @@ env:
 ```
 
 ### Add Build Arguments
-Modify the build-push-action in workflows:
+Modify the `build-args` field in workflows:
 ```yaml
 build-args: |
   BUILD_VERSION=${{ github.sha }}
@@ -65,7 +57,7 @@ build-args: |
 ### Change Platforms
 Update the `platforms` field:
 ```yaml
-platforms: linux/amd64,linux/arm64,linux/arm/v7
+platforms: linux/amd64,linux/arm64,linux/ppc64le
 ```
 
 ## Troubleshooting
