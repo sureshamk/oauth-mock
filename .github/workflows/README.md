@@ -16,6 +16,12 @@ This directory contains GitHub Actions workflows for automated Docker image buil
 - Includes basic Docker image testing
 - **Use this for most development workflows**
 
+### `multi-arch-build.yml` (Multi-Architecture)
+- Comprehensive multi-architecture builds (AMD64, ARM64)
+- Platform-specific testing with QEMU emulation
+- Manual workflow dispatch with custom platform selection
+- **Use this for production multi-arch deployments**
+
 ### `docker-build.yml`
 - Simple build and push workflow
 - Good for basic CI/CD needs

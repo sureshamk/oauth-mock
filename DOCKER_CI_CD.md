@@ -6,8 +6,9 @@ This project uses GitHub Actions to automatically build and push Docker images t
 
 ### 1. Build and Push (`docker-build.yml`)
 - **Triggers**: Push to main/master branch, pull requests, and version tags
-- **Actions**: Builds Docker image and pushes to ghcr.io
+- **Actions**: Builds multi-architecture Docker image and pushes to ghcr.io
 - **Features**: 
+  - Multi-architecture support (AMD64, ARM64)
   - Automatic tagging based on branch, PR, and semantic versions
   - GitHub Actions cache for faster builds
   - Only pushes on actual pushes (not PRs)
@@ -20,7 +21,16 @@ This project uses GitHub Actions to automatically build and push Docker images t
   - Snyk security scanning (optional)
 - **Features**: Results uploaded to GitHub Security tab
 
-### 3. Release (`release.yml`)
+### 3. **Multi-Architecture Build (`multi-arch-build.yml`)**
+- **Triggers**: Push to main/master branch, pull requests, and manual dispatch
+- **Actions**: Comprehensive multi-architecture Docker builds with testing
+- **Features**: 
+  - AMD64 and ARM64 support with QEMU emulation
+  - Platform-specific testing
+  - Manual workflow dispatch with custom platform selection
+  - Build arguments for version and date tracking
+
+### 4. Release (`release.yml`)
 - **Triggers**: GitHub releases published
 - **Actions**: Multi-platform Docker builds and releases
 - **Features**: 
@@ -90,10 +100,20 @@ docker run -p 9000:9000 \
 
 ## Multi-platform Support
 
-The release workflow builds images for multiple architectures:
+All workflows now support multi-architecture builds:
+
+### Primary Architectures (All Workflows)
 - **linux/amd64**: Intel/AMD 64-bit processors
 - **linux/arm64**: ARM 64-bit processors (Apple Silicon, ARM servers)
+
+### Extended Support (Release Workflow)
 - **linux/arm/v7**: ARM 32-bit processors (Raspberry Pi, etc.)
+
+### Key Features
+- **QEMU Emulation**: Enables building ARM images on AMD64 runners
+- **Platform Testing**: Each architecture is tested independently
+- **Manual Dispatch**: Custom platform selection via workflow dispatch
+- **Build Arguments**: Version and timestamp tracking in images
 
 ## Security Features
 

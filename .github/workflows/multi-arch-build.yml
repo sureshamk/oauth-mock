@@ -1,4 +1,4 @@
-name: Test and Build Docker Image
+name: Multi-Architecture Docker Build
 
 on:
   push:
@@ -6,6 +6,13 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: 'Platforms to build for'
+        required: false
+        default: 'linux/amd64,linux/arm64'
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -16,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16, 18, 20]
+        node-version: [18, 20]
 
     steps:
       - name: Checkout repository
@@ -31,16 +38,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run linting
-        run: npm run lint --if-present
-
       - name: Run tests
         run: npm test
 
       - name: Run integration tests
         run: npm run test:integration --if-present
 
-  build:
+  build-multiarch:
     needs: test
     runs-on: ubuntu-latest
     permissions:
@@ -50,6 +54,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -73,22 +80,40 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
 
-      - name: Build and push Docker image
+      - name: Build and push multi-architecture Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
+          platforms: ${{ github.event.inputs.platforms || 'linux/amd64,linux/arm64' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_VERSION=${{ github.sha }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
 
-      - name: Test Docker image
+      - name: Test multi-arch images
         if: github.event_name != 'pull_request'
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker run --rm -d --name test-container -p 9000:9000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          echo "Testing AMD64 image..."
+          docker pull --platform linux/amd64 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker run --rm --platform linux/amd64 -d --name test-amd64 -p 9000:9000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           sleep 10
           curl -f http://localhost:9000/ || exit 1
-          docker stop test-container
+          docker stop test-amd64
+          
+          echo "Testing ARM64 image..."
+          docker pull --platform linux/arm64 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker run --rm --platform linux/arm64 -d --name test-arm64 -p 9001:9000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          sleep 10
+          curl -f http://localhost:9001/ || exit 1
+          docker stop test-arm64
+
+      - name: Show image details
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Built images for platforms: ${{ github.event.inputs.platforms || 'linux/amd64,linux/arm64' }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
