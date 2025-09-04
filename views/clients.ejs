@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clients - Mock OAuth2 Server</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>Registered Clients</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Client ID</th>
+        <th>Client Secret</th>
+        <th>Redirect URIs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% clients.forEach(client => { %>
+        <tr>
+          <td><%= client.client_id %></td>
+          <td><%= client.client_secret %></td>
+          <td>
+            <ul>
+              <% client.redirect_uris.forEach(uri => { %>
+                <li><%= uri %></li>
+              <% }); %>
+            </ul>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  <a href="/">Back to Home</a>
+</body>
+</html>

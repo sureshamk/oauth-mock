@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "sub": "123456789",
+    "name": "Test User",
+    "given_name": "Test",
+    "family_name": "User",
+    "picture": "http://localhost:3000/avatar.png",
+    "emails": [{ "value": "jhon@example.com" }],
+    "email_verified": true,
+    "locale": "en",
+    "domain": "example.com"
+  }
+]

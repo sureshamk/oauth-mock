@@ -1,0 +1,29 @@
+FROM node:18-alpine
+
+# Install AWS CLI and other necessary tools
+RUN apk add --no-cache \
+    aws-cli \
+    zip \
+    curl \
+    bash
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy application files
+COPY . .
+
+# Create lambda package directory
+RUN mkdir -p /tmp/lambda-package
+
+# Expose port for Lambda function
+EXPOSE 9001
+
+# Default command (will be overridden by docker-compose)
+CMD ["node", "lambda.js"]

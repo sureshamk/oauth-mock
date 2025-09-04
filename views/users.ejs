@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users - Mock OAuth2 Server</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    img { max-width: 50px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+  <h1>Registered Users</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Picture</th>
+        <th>Domain</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(user => { %>
+        <tr>
+          <td><%= user.id %></td>
+          <td><%= user.name %></td>
+          <td><%= user.email %></td>
+          <td><img src="<%= user.picture %>" alt="<%= user.name %>'s picture"></td>
+          <td><%= user.domain %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  <a href="/">Back to Home</a>
+</body>
+</html>

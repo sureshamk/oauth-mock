@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # Original Express server (for comparison)
+  mock-oauth2-server:
+    build: .
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./config:/usr/src/app/config
+      - ./views:/usr/src/app/views
+      - ./index.js:/usr/src/app/index.js
+    environment:
+      - PORT=9000
+
+  # LocalStack for AWS Lambda testing
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"      # LocalStack main port
+      - "4570-4579:4570-4579"  # External service port range
+    environment:
+      - SERVICES=lambda,apigateway,cloudwatch,iam
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=us-east-1
+      - LAMBDA_EXECUTOR=docker
+      - LAMBDA_REMOTE_DOCKER=false
+      - LAMBDA_DOCKER_FLAGS=-p 127.0.0.1:9001:9001
+      - HOSTNAME_EXTERNAL=localhost
+      - PERSISTENCE=1
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./lambda-package:/tmp/lambda-package
+    networks:
+      - localstack-network
+
+  # Lambda deployment service
+  lambda-deployer:
+    build:
+      context: .
+      dockerfile: Dockerfile.lambda
+    depends_on:
+      - localstack
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - LOCALSTACK_HOSTNAME=localstack
+      - ENDPOINT_URL=http://localstack:4566
+    volumes:
+      - ./:/app
+      - ./lambda-package:/tmp/lambda-package
+    networks:
+      - localstack-network
+    command: >
+      sh -c "
+        echo 'Waiting for LocalStack to be ready...' &&
+        aws --endpoint-url=http://localstack:4566 --region=us-east-1 --no-verify-ssl sts get-caller-identity &&
+        echo 'LocalStack is ready!' &&
+        echo 'Creating Lambda deployment package...' &&
+        cd /app &&
+        npm install &&
+        zip -r /tmp/lambda-package/lambda.zip . -x 'node_modules/.cache/*' 'test/*' '.nyc_output/*' 'coverage/*' '.git/*' '.vscode/*' '*.md' 'Dockerfile*' 'docker-compose.yml' '.dockerignore' 'memory-bank/*' 'mock-oauth2-server/*' &&
+        echo 'Deploying Lambda function...' &&
+        aws --endpoint-url=http://localstack:4566 --region=us-east-1 --no-verify-ssl lambda create-function \
+          --function-name mock-oauth2-server \
+          --runtime nodejs18.x \
+          --role arn:aws:iam::000000000000:role/lambda-role \
+          --handler lambda.handler \
+          --zip-file fileb:///tmp/lambda-package/lambda.zip \
+          --timeout 30 \
+          --memory-size 512 &&
+        echo 'Creating API Gateway...' &&
+        aws --endpoint-url=http://localstack:4566 --region=us-east-1 --no-verify-ssl apigateway create-rest-api \
+          --name mock-oauth2-api \
+          --description 'Mock OAuth2 Server API' &&
+        echo 'Lambda function deployed successfully!' &&
+        echo 'API Gateway created successfully!' &&
+        tail -f /dev/null
+      "
+
+networks:
+  localstack-network:
+    driver: bridge
+
+volumes:
+  localstack-data:

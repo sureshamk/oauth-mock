@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock OAuth2 Server</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+    h1, h2 { color: #333; }
+    code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 4px; }
+    pre { background-color: #f4f4f4; padding: 10px; border-radius: 4px; }
+    .endpoint { border-left: 4px solid #007bff; padding-left: 15px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to the Mock OAuth2 Server</h1>
+  <p>This server provides mock endpoints for OAuth2 flows, designed for development and testing purposes.</p>
+
+  <ul>
+    <li><a href="/clients">View Registered Clients</a></li>
+    <li><a href="/users">View Registered Users</a></li>
+  </ul>
+
+  <h2>Available Endpoints:</h2>
+
+  <div class="endpoint">
+    <h3>Authorization Endpoint</h3>
+    <p><code>GET /auth</code></p>
+    <p>Initiates the authorization flow. Requires the following query parameters:</p>
+    <ul>
+      <li><code>client_id</code>: The ID of the client application.</li>
+      <li><code>redirect_uri</code>: The URI to redirect to after authorization.</li>
+      <li><code>state</code> (optional): An opaque value used to maintain state between the request and callback.</li>
+    </ul>
+    <p><strong>Sample URL:</strong></p>
+    <pre><code><a href="/auth?client_id=test_client&redirect_uri=http://localhost:3000/callback&state=123">/auth?client_id=test_client&redirect_uri=http://localhost:3000/callback&state=123</a></code></pre>
+  </div>
+
+  <div class="endpoint">
+    <h3>Token Endpoint</h3>
+    <p><code>POST /token</code></p>
+    <p>Exchanges an authorization code for an access token. Requires the following parameters in the request body:</p>
+    <ul>
+      <li><code>code</code>: The authorization code received from the <code>/auth</code> endpoint.</li>
+      <li><code>client_id</code>: The ID of the client application.</li>
+      <li><code>client_secret</code>: The secret of the client application.</li>
+      <li><code>redirect_uri</code>: The same redirect URI used in the authorization request.</li>
+      <li><code>grant_type</code>: Must be set to <code>authorization_code</code>.</li>
+    </ul>
+  </div>
+
+  <div class="endpoint">
+    <h3>User Info Endpoint</h3>
+    <p><code>GET /userinfo</code></p>
+    <p>Retrieves information about the authenticated user. Requires an <code>Authorization</code> header with a bearer token:</p>
+    <pre><code>Authorization: Bearer [access_token]</code></pre>
+  </div>
+
+</body>
+</html>

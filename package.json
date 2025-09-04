@@ -1,0 +1,36 @@
+{
+  "name": "mock-oauth2-server",
+  "version": "1.0.0",
+  "description": "A mock Google OAuth2 server for Passport.js integration.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "nyc mocha --exit",
+    "test:all": "node tests/run-all.js",
+    "test:lambda": "node tests/run-all.js lambda",
+    "test:oauth2": "node tests/run-all.js oauth2",
+    "test:localstack": "node tests/run-all.js localstack",
+    "test:integration": "node tests/run-all.js integration",
+    "build": "npm ci --only=production",
+    "deploy": "serverless deploy",
+    "deploy:prod": "serverless deploy --stage production",
+    "remove": "serverless remove"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^17.2.0",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "nyc": "^17.1.0",
+    "serverless-http": "^3.2.0",
+    "aws-sdk": "^2.1574.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1",
+    "serverless": "^3.38.0",
+    "serverless-offline": "^12.0.4",
+    "supertest": "^7.1.3"
+  }
+}
